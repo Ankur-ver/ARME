@@ -1,88 +1,89 @@
 # ==============================================================================
 # Adaptive Rate-Matching Engine - Build, Lint, Simulation & Regression Makefile
 # ==============================================================================
-# Supported flows:
-#   1. Open-source SV simulation: Verilator / Icarus Verilog (unit & SV TB)
-#   2. Full UVM + SVA + Functional Coverage: Questa / VCS / Xcelium (or Verilator+UVM)
-#   3. Lint & Synthesis: Verilator --lint-only / Yosys
-#   4. Regression & Performance Analysis: Python 3
-# ==============================================================================
 
 SHELL       := /bin/bash
-PYTHON      ?= python3
-SIM         ?= verilator
-UVM_SIM     ?= questa
+PYTHON      ?= python
+SIM         ?= iverilog
 
 RTL_DIR     := rtl
 TB_DIR      := tb
+TESTS_DIR   := tests
 BUILD_DIR   := sim/build
-WAVE_DIR    := sim/waves
 RESULTS_DIR := results
 
-RTL_PKG     := $(RTL_DIR)/rate_engine_pkg.sv
-RTL_SRCS    := $(RTL_PKG) \
-               $(wildcard $(RTL_DIR)/*.sv)
+RTL_SRCS    := $(RTL_DIR)/rate_engine_pkg.sv \
+               $(RTL_DIR)/reset_controller.sv \
+               $(RTL_DIR)/packet_controller.sv \
+               $(RTL_DIR)/stream_adapter.sv \
+               $(RTL_DIR)/async_fifo.sv \
+               $(RTL_DIR)/fifo_monitor.sv \
+               $(RTL_DIR)/rate_controller.sv \
+               $(RTL_DIR)/top.sv
 
 IF_SRCS     := $(TB_DIR)/interfaces/stream_if.sv
 
-.PHONY: all help dirs lint compile test test-fifo uvm regression coverage synth analyze clean
+.PHONY: all help dirs lint compile test-fifo test uvm regression coverage synth analyze clean
 
 all: help
 
 help:
 	@echo "Adaptive Rate-Matching Engine - Makefile Targets"
-	@echo "  make dirs        - Create simulation build directories"
-	@echo "  make lint        - Run Verilator RTL lint checks"
-	@echo "  make compile     - Compile Phase RTL + interfaces with $(SIM)"
-	@echo "  make test-fifo   - Run standalone async_fifo directed/random testbench"
-	@echo "  make test        - Run SystemVerilog top-level self-checking testbench"
-	@echo "  make uvm         - Compile & run UVM testbench (requires UVM-capable simulator)"
-	@echo "  make regression  - Run Python regression runner"
-	@echo "  make coverage    - Generate/merge coverage reports (simulator-dependent)"
-	@echo "  make synth       - Run Yosys synthesis script (if yosys installed)"
-	@echo "  make analyze     - Run Python performance analysis & plotting"
-	@echo "  make clean       - Clean build, wave, and temporary files"
+	@echo "  make lint        - Run Verilator RTL lint checks (-Wall)"
+	@echo "  make compile     - Compile full RTL + stream_if with $(SIM)"
+	@echo "  make test-fifo   - Run standalone async_fifo CDC unit testbench"
+	@echo "  make test        - Run full-subsystem self-checking SV testbench"
+	@echo "  make uvm         - Run UVM + SVA testbench (requires Questa/VCS/Xcelium)"
+	@echo "  make regression  - Run 30-seed Python RTL regression suite"
+	@echo "  make synth       - Run Yosys synthesis and resource report"
+	@echo "  make analyze     - Run Experiments A-E and generate PNG plots"
+	@echo "  make clean       - Clean build and temporary files"
 
 dirs:
-	@mkdir -p $(BUILD_DIR) $(WAVE_DIR) $(RESULTS_DIR)
+	@mkdir -p $(BUILD_DIR) $(RESULTS_DIR)
 
 lint: dirs
-	verilator --lint-only -Wall -Wno-DECLFILENAME \
-		-I$(RTL_DIR) $(RTL_PKG) $(IF_SRCS) \
-		$(filter-out $(RTL_PKG),$(wildcard $(RTL_DIR)/*.sv))
+	verilator --lint-only -Wall -I$(RTL_DIR) --top-module top $(RTL_SRCS)
 
 compile: dirs
 ifeq ($(SIM),iverilog)
-	iverilog -g2012 -Wall -I$(RTL_DIR) -o $(BUILD_DIR)/compile_check.vvp \
-		$(RTL_PKG) $(IF_SRCS)
+	iverilog -g2012 -Wall -I$(RTL_DIR) -s top -o $(BUILD_DIR)/top.vvp $(RTL_SRCS)
 else ifeq ($(SIM),verilator)
-	verilator --lint-only -Wall -I$(RTL_DIR) $(RTL_PKG) $(IF_SRCS)
+	verilator --lint-only -Wall -I$(RTL_DIR) --top-module top $(RTL_SRCS)
 else
-	@echo "Unsupported SIM=$(SIM). Use SIM=verilator or SIM=iverilog."
+	@echo "Unsupported SIM=$(SIM). Use SIM=iverilog or SIM=verilator."
 	@exit 1
 endif
 
 test-fifo: dirs
-	@echo "Available starting Phase 3 (FIFO unit tests)."
+	iverilog -g2012 -Wall -I$(RTL_DIR) -o $(BUILD_DIR)/tb_async_fifo.vvp \
+		$(RTL_DIR)/async_fifo.sv $(TESTS_DIR)/tb_async_fifo.sv
+	vvp $(BUILD_DIR)/tb_async_fifo.vvp
 
 test: dirs
-	@echo "Available starting Phase 7 (Top-level SV testbench)."
+	iverilog -g2012 -Wall -I$(RTL_DIR) -s tb_top -o $(BUILD_DIR)/tb_top.vvp \
+		$(RTL_SRCS) $(TESTS_DIR)/tb_top.sv
+	vvp $(BUILD_DIR)/tb_top.vvp +TEST=all +SEED=20261110
 
-uvm: dirs
-	@echo "Available starting Phase 8 (UVM environment; requires Questa/VCS/Xcelium or UVM-enabled Verilator)."
+uvm:
+	@echo "UVM 1.2 + SVA + covergroups require Questa/VCS/Xcelium."
+	@echo "Example (Questa):"
+	@echo "  vlog -sv +incdir+tb/uvm/sequences+tb/uvm/agents+tb/uvm/reference_model+tb/uvm/scoreboard+tb/uvm/coverage+tb/uvm/env+tb/uvm/tests \\"
+	@echo "    $(RTL_SRCS) $(IF_SRCS) tb/assertions/assertions.sv tb/uvm/rate_uvm_pkg.sv tb/uvm/tb_uvm_top.sv"
+	@echo "  vsim -c tb_uvm_top +UVM_TESTNAME=random_stress_test -do \"run -all; quit\""
 
 regression: dirs
-	$(PYTHON) scripts/run_regression.py --tests all --runs 20
+	$(PYTHON) scripts/run_regression.py --tests all --runs 30
 
 coverage:
-	@echo "Available starting Phase 12 (Functional coverage closure)."
+	@echo "See docs/coverage_closure.md for Tier 1 regression & Tier 2 UVM UCDB closure instructions."
 
 synth:
-	@echo "Available when synthesis scripts are added."
+	yosys -s synthesis/synth_yosys.ys
 
-analyze:
+analyze: dirs
 	$(PYTHON) scripts/analyze_results.py
 	$(PYTHON) scripts/plot_results.py
 
 clean:
-	rm -rf $(BUILD_DIR) $(WAVE_DIR) obj_dir work transcript vsim.wlf *.vvp *.vcd *.fst
+	rm -rf $(BUILD_DIR) obj_dir work transcript vsim.wlf *.vvp *.vcd *.fst
