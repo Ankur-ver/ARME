@@ -64,9 +64,10 @@ interface stream_if #(
     );
 
     // -------------------------------------------------------------------------
-    // Simulation Clocking Blocks (Excluded from Synthesis)
+    // Simulation Clocking Blocks (Excluded from Synthesis & Icarus Verilog)
     // -------------------------------------------------------------------------
 `ifndef SYNTHESIS
+`ifndef __ICARUS__
     clocking drv_cb @(posedge clk);
         default input #1step output #1ns;
         output data, keep, valid, packet_start, packet_end;
@@ -84,5 +85,7 @@ interface stream_if #(
         input data, keep, valid, ready, packet_start, packet_end, rst_n;
     endclocking
 `endif
+`endif
 
 endinterface : stream_if
+
