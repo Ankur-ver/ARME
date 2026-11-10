@@ -1,0 +1,29 @@
+# Yosys Synthesis Script for Adaptive Rate-Matching Engine
+read_verilog -sv rtl/rate_engine_pkg.sv
+read_verilog -sv rtl/reset_controller.sv
+read_verilog -sv rtl/packet_controller.sv
+read_verilog -sv rtl/stream_adapter.sv
+read_verilog -sv rtl/async_fifo.sv
+read_verilog -sv rtl/fifo_monitor.sv
+read_verilog -sv rtl/rate_controller.sv
+read_verilog -sv rtl/top.sv
+
+# Full-scale elaboration with memory macro inference (FIFO_DEPTH=1024)
+prep -top top
+memory_collect
+opt
+stat
+
+# Gate-mapped control+datapath check at FIFO_DEPTH=16 (fast ABC gate mapping)
+design -reset
+read_verilog -sv rtl/rate_engine_pkg.sv
+read_verilog -sv rtl/reset_controller.sv
+read_verilog -sv rtl/packet_controller.sv
+read_verilog -sv rtl/stream_adapter.sv
+read_verilog -sv rtl/async_fifo.sv
+read_verilog -sv rtl/fifo_monitor.sv
+read_verilog -sv rtl/rate_controller.sv
+read_verilog -sv rtl/top.sv
+chparam -set FIFO_DEPTH 16 -set CRIT_LOW_WATERMARK 1 -set LOW_WATERMARK 4 -set RECOVERY_WATERMARK 8 -set HIGH_WATERMARK 12 -set CRIT_HIGH_WATERMARK 14 top
+synth -top top
+stat
