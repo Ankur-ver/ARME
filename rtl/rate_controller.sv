@@ -14,30 +14,28 @@
 
 `timescale 1ns/1ps
 
-module rate_controller
-    import rate_engine_pkg::*;
-#(
+module rate_controller #(
     parameter int FIFO_DEPTH = 1024,
     localparam int PTR_WIDTH = $clog2(FIFO_DEPTH) + 1
 ) (
-    input  logic                 clk,
-    input  logic                 rst_n,
-    input  logic [1:0]           adapt_mode,
-    input  logic [PTR_WIDTH-1:0] occupancy,
-    input  logic                 fifo_full,
+    input  logic                              clk,
+    input  logic                              rst_n,
+    input  logic [1:0]                        adapt_mode,
+    input  logic [PTR_WIDTH-1:0]              occupancy,
+    input  logic                              fifo_full,
 
     // Configurable Watermarks
-    input  logic [PTR_WIDTH-1:0] crit_low_wm,
-    input  logic [PTR_WIDTH-1:0] low_wm,
-    input  logic [PTR_WIDTH-1:0] recovery_wm,
-    input  logic [PTR_WIDTH-1:0] high_wm,
-    input  logic [PTR_WIDTH-1:0] crit_high_wm,
+    input  logic [PTR_WIDTH-1:0]              crit_low_wm,
+    input  logic [PTR_WIDTH-1:0]              low_wm,
+    input  logic [PTR_WIDTH-1:0]              recovery_wm,
+    input  logic [PTR_WIDTH-1:0]              high_wm,
+    input  logic [PTR_WIDTH-1:0]              crit_high_wm,
 
     // Control & Status Outputs
-    output ctrl_state_e          current_state,
-    output logic                 flow_enable,
-    output logic                 congestion,
-    output logic                 starvation_warning
+    output rate_engine_pkg::ctrl_state_e      current_state,
+    output logic                              flow_enable,
+    output logic                              congestion,
+    output logic                              starvation_warning
 );
 
     // Derived hysteresis exit thresholds
@@ -47,9 +45,9 @@ module rate_controller
     assign low_exit_wm      = (low_wm + recovery_wm) >> 1;
     assign throttle_exit_wm = (high_wm + recovery_wm) >> 1;
 
-    ctrl_state_e next_state;
-    logic [1:0]  pace_cnt;
-    logic        next_flow_enable;
+    rate_engine_pkg::ctrl_state_e next_state;
+    logic [1:0]                   pace_cnt;
+    logic                         next_flow_enable;
 
     // -------------------------------------------------------------------------
     // Next-State Logic with Asymmetric Entry/Exit Thresholds (Hysteresis)
@@ -58,63 +56,63 @@ module rate_controller
         next_state = current_state;
 
         if (adapt_mode == 2'd0) begin
-            next_state = CTRL_NORMAL;
+            next_state = rate_engine_pkg::CTRL_NORMAL;
         end else if (adapt_mode == 2'd1) begin
             // Fixed single-threshold baseline (for Experiment D comparison)
             if (occupancy >= high_wm) begin
-                next_state = CTRL_THROTTLE;
+                next_state = rate_engine_pkg::CTRL_THROTTLE;
             end else begin
-                next_state = CTRL_NORMAL;
+                next_state = rate_engine_pkg::CTRL_NORMAL;
             end
         end else begin
-            unique case (current_state)
-                CTRL_NORMAL: begin
+            case (current_state)
+                rate_engine_pkg::CTRL_NORMAL: begin
                     if (occupancy >= crit_high_wm) begin
-                        next_state = CTRL_CONGESTION;
+                        next_state = rate_engine_pkg::CTRL_CONGESTION;
                     end else if (occupancy >= high_wm) begin
-                        next_state = CTRL_THROTTLE;
+                        next_state = rate_engine_pkg::CTRL_THROTTLE;
                     end else if (occupancy <= low_wm) begin
-                        next_state = CTRL_STARVATION_WARNING;
+                        next_state = rate_engine_pkg::CTRL_STARVATION_WARNING;
                     end
                 end
 
-                CTRL_STARVATION_WARNING: begin
+                rate_engine_pkg::CTRL_STARVATION_WARNING: begin
                     if (occupancy >= crit_high_wm) begin
-                        next_state = CTRL_CONGESTION;
+                        next_state = rate_engine_pkg::CTRL_CONGESTION;
                     end else if (occupancy >= high_wm) begin
-                        next_state = CTRL_THROTTLE;
+                        next_state = rate_engine_pkg::CTRL_THROTTLE;
                     end else if (occupancy > low_exit_wm) begin
-                        next_state = CTRL_NORMAL;
+                        next_state = rate_engine_pkg::CTRL_NORMAL;
                     end
                 end
 
-                CTRL_THROTTLE: begin
+                rate_engine_pkg::CTRL_THROTTLE: begin
                     if (occupancy >= crit_high_wm) begin
-                        next_state = CTRL_CONGESTION;
+                        next_state = rate_engine_pkg::CTRL_CONGESTION;
                     end else if (occupancy < throttle_exit_wm) begin
-                        next_state = CTRL_RECOVERY;
+                        next_state = rate_engine_pkg::CTRL_RECOVERY;
                     end
                 end
 
-                CTRL_CONGESTION: begin
+                rate_engine_pkg::CTRL_CONGESTION: begin
                     // Must drop below high_wm (not crit_high_wm) to step down
                     if (occupancy <= high_wm) begin
-                        next_state = CTRL_THROTTLE;
+                        next_state = rate_engine_pkg::CTRL_THROTTLE;
                     end
                 end
 
-                CTRL_RECOVERY: begin
+                rate_engine_pkg::CTRL_RECOVERY: begin
                     if (occupancy >= crit_high_wm) begin
-                        next_state = CTRL_CONGESTION;
+                        next_state = rate_engine_pkg::CTRL_CONGESTION;
                     end else if (occupancy >= high_wm) begin
-                        next_state = CTRL_THROTTLE;
+                        next_state = rate_engine_pkg::CTRL_THROTTLE;
                     end else if (occupancy <= recovery_wm) begin
-                        next_state = CTRL_NORMAL;
+                        next_state = rate_engine_pkg::CTRL_NORMAL;
                     end
                 end
 
                 default: begin
-                    next_state = CTRL_NORMAL;
+                    next_state = rate_engine_pkg::CTRL_NORMAL;
                 end
             endcase
         end
@@ -129,13 +127,13 @@ module rate_controller
         end else if (adapt_mode == 2'd1) begin
             next_flow_enable = (occupancy < high_wm);
         end else begin
-            unique case (next_state)
-                CTRL_NORMAL:             next_flow_enable = 1'b1;
-                CTRL_STARVATION_WARNING: next_flow_enable = 1'b1;
-                CTRL_RECOVERY:           next_flow_enable = (pace_cnt != 2'd3);        // 75% rate
-                CTRL_THROTTLE:           next_flow_enable = ((pace_cnt & 2'b01) == 2'b00); // 50% rate
-                CTRL_CONGESTION:         next_flow_enable = (pace_cnt == 2'd0) && !fifo_full; // <=25% rate
-                default:                 next_flow_enable = 1'b1;
+            case (next_state)
+                rate_engine_pkg::CTRL_NORMAL:             next_flow_enable = 1'b1;
+                rate_engine_pkg::CTRL_STARVATION_WARNING: next_flow_enable = 1'b1;
+                rate_engine_pkg::CTRL_RECOVERY:           next_flow_enable = (pace_cnt != 2'd3);        // 75% rate
+                rate_engine_pkg::CTRL_THROTTLE:           next_flow_enable = ((pace_cnt & 2'b01) == 2'b00); // 50% rate
+                rate_engine_pkg::CTRL_CONGESTION:         next_flow_enable = (pace_cnt == 2'd0) && !fifo_full; // <=25% rate
+                default:                                  next_flow_enable = 1'b1;
             endcase
         end
     end
@@ -149,7 +147,7 @@ module rate_controller
     // -------------------------------------------------------------------------
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-            current_state      <= CTRL_NORMAL;
+            current_state      <= rate_engine_pkg::CTRL_NORMAL;
             pace_cnt           <= 2'd0;
             flow_enable        <= 1'b0;
             congestion         <= 1'b0;
@@ -158,8 +156,8 @@ module rate_controller
             current_state      <= next_state;
             pace_cnt           <= pace_cnt + 2'd1;
             flow_enable        <= next_flow_enable;
-            congestion         <= (next_state == CTRL_CONGESTION);
-            starvation_warning <= (next_state == CTRL_STARVATION_WARNING) &&
+            congestion         <= (next_state == rate_engine_pkg::CTRL_CONGESTION);
+            starvation_warning <= (next_state == rate_engine_pkg::CTRL_STARVATION_WARNING) &&
                                   (occupancy <= crit_low_wm || occupancy <= low_wm);
         end
     end

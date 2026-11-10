@@ -8,13 +8,11 @@
 
 `timescale 1ns/1ps
 
-module top
-    import rate_engine_pkg::*;
-#(
-    parameter int DATA_WIDTH           = DEFAULT_DATA_WIDTH,
+module top #(
+    parameter int DATA_WIDTH           = rate_engine_pkg::DEFAULT_DATA_WIDTH,
     parameter int KEEP_WIDTH           = (DATA_WIDTH / 8),
-    parameter int FIFO_DEPTH           = DEFAULT_FIFO_DEPTH,
-    parameter int SYNC_STAGES          = DEFAULT_SYNC_STAGES,
+    parameter int FIFO_DEPTH           = rate_engine_pkg::DEFAULT_FIFO_DEPTH,
+    parameter int SYNC_STAGES          = rate_engine_pkg::DEFAULT_SYNC_STAGES,
     parameter int CRIT_LOW_WATERMARK   = (FIFO_DEPTH / 16),
     parameter int LOW_WATERMARK        = (FIFO_DEPTH / 4),
     parameter int RECOVERY_WATERMARK   = (FIFO_DEPTH / 2),
@@ -49,39 +47,39 @@ module top
     input  logic                  clr_errors,
 
     // Status & Monitoring Outputs
-    output logic                  fifo_full,
-    output logic                  fifo_empty,
-    output logic                  almost_full,
-    output logic                  almost_empty,
-    output logic                  congestion,
-    output logic                  starvation_warning,
-    output logic                  high_watermark_hit,
-    output logic                  low_watermark_hit,
-    output logic                  overflow_error,
-    output logic                  underflow_error,
-    output logic                  packet_error,
-    output logic [31:0]           overflow_count,
-    output logic [31:0]           underflow_count,
-    output logic [31:0]           packets_started,
-    output logic [31:0]           packets_completed,
-    output ctrl_state_e           current_state,
-    output logic [PTR_WIDTH-1:0]  src_occupancy,
-    output logic [PTR_WIDTH-1:0]  dst_occupancy,
-    output logic [PTR_WIDTH-1:0]  max_occupancy,
-    output logic [PTR_WIDTH-1:0]  min_occupancy,
-    output logic                  reset_busy_src,
-    output logic                  reset_busy_dst
+    output logic                         fifo_full,
+    output logic                         fifo_empty,
+    output logic                         almost_full,
+    output logic                         almost_empty,
+    output logic                         congestion,
+    output logic                         starvation_warning,
+    output logic                         high_watermark_hit,
+    output logic                         low_watermark_hit,
+    output logic                         overflow_error,
+    output logic                         underflow_error,
+    output logic                         packet_error,
+    output logic [31:0]                  overflow_count,
+    output logic [31:0]                  underflow_count,
+    output logic [31:0]                  packets_started,
+    output logic [31:0]                  packets_completed,
+    output rate_engine_pkg::ctrl_state_e current_state,
+    output logic [PTR_WIDTH-1:0]         src_occupancy,
+    output logic [PTR_WIDTH-1:0]         dst_occupancy,
+    output logic [PTR_WIDTH-1:0]         max_occupancy,
+    output logic [PTR_WIDTH-1:0]         min_occupancy,
+    output logic                         reset_busy_src,
+    output logic                         reset_busy_dst
 );
 
     localparam int PAYLOAD_WIDTH = DATA_WIDTH + KEEP_WIDTH + 2;
 
     // Reference default constants from package so package defaults are exercised
-    localparam int unsigned _pkg_ref_crit_low = DEFAULT_CRIT_LOW_WATERMARK;
-    localparam int unsigned _pkg_ref_low      = DEFAULT_LOW_WATERMARK;
-    localparam int unsigned _pkg_ref_rec      = DEFAULT_RECOVERY_WATERMARK;
-    localparam int unsigned _pkg_ref_high     = DEFAULT_HIGH_WATERMARK;
-    localparam int unsigned _pkg_ref_chigh    = DEFAULT_CRIT_HIGH_WATERMARK;
-    localparam int unsigned _pkg_ref_keep     = DEFAULT_KEEP_WIDTH;
+    localparam int unsigned _pkg_ref_crit_low = rate_engine_pkg::DEFAULT_CRIT_LOW_WATERMARK;
+    localparam int unsigned _pkg_ref_low      = rate_engine_pkg::DEFAULT_LOW_WATERMARK;
+    localparam int unsigned _pkg_ref_rec      = rate_engine_pkg::DEFAULT_RECOVERY_WATERMARK;
+    localparam int unsigned _pkg_ref_high     = rate_engine_pkg::DEFAULT_HIGH_WATERMARK;
+    localparam int unsigned _pkg_ref_chigh    = rate_engine_pkg::DEFAULT_CRIT_HIGH_WATERMARK;
+    localparam int unsigned _pkg_ref_keep     = rate_engine_pkg::DEFAULT_KEEP_WIDTH;
     // Silence unused localparam checks cleanly
     logic _unused_pkg_refs;
     assign _unused_pkg_refs = (_pkg_ref_crit_low == 0) && (_pkg_ref_low == 0) &&
