@@ -28,3 +28,4 @@ This repository enforces **zero fabricated coverage numbers**:
 3. **Legitimate Code/Assertion Exclusions in Commercial Tools:**
    - Default `case` branches in `rate_controller.sv` (`CTRL_NORMAL` fallback for unused encodings `3'd5..3'd7`): unreachable under normal synchronous operation; legitimate FSM safety exclusion.
    - `DROP_MALFORMED_BEATS == 1` branch in `packet_controller.sv` unless explicitly parameterized in a drop-mode build.
+

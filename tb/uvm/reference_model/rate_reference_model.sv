@@ -76,3 +76,4 @@ class rate_reference_model extends uvm_component;
 endclass
 
 `endif
+

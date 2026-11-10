@@ -21,3 +21,4 @@ In a dual-clock asynchronous FIFO, resetting only one side while the other side 
 - In `packet_controller.sv`, `in_packet` resets synchronously/asynchronously back to `1'b0` on reset, clearing partial-packet state.
 - Any partial packet beats still inside `async_fifo` when reset asserts are flushed by resetting `wr_ptr_bin`, `rd_ptr_bin`, and egress `skid_count` to 0.
 - Dedicated reset tests (`reset_test`, `reset_during_packet_test`) verify both independent `src_rst_n`/`dst_rst_n` assertions and mid-packet reset recovery without post-reset corruption.
+

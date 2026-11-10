@@ -139,3 +139,4 @@ class rate_coverage extends uvm_component;
 endclass
 
 `endif
+

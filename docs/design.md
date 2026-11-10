@@ -29,3 +29,4 @@ The **Adaptive Rate-Matching Engine** (`rtl/top.sv`) bridges two independent clo
 - **Gate-mapped control + storage check (`FIFO_DEPTH = 16`, generic ABC cells):**
   - Total gate cells: **4,353** (`async_fifo`: 3,099, `stream_adapter`: 407, `fifo_monitor`: 404, `rate_controller`: 228, `packet_controller`: 202, `reset_controller`: 13)
   - Note: Yosys generic mapping does not run ASIC standard-cell timing closure; critical path and $F_{\max}$ depend on target PDK/SRAM macro timing and are intentionally not fabricated here.
+

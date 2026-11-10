@@ -117,3 +117,4 @@ class virtual_traffic_vseq extends uvm_sequence;
 endclass
 
 `endif
+

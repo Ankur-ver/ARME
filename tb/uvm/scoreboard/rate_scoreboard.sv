@@ -93,3 +93,4 @@ class rate_scoreboard extends uvm_component;
 endclass
 
 `endif
+

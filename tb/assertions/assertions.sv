@@ -177,3 +177,4 @@ bind top rate_engine_sva #(
     .current_state    (current_state),
     .src_occupancy    (src_occupancy)
 );
+

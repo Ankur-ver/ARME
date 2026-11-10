@@ -27,3 +27,4 @@ read_verilog -sv rtl/top.sv
 chparam -set FIFO_DEPTH 16 -set CRIT_LOW_WATERMARK 1 -set LOW_WATERMARK 4 -set RECOVERY_WATERMARK 8 -set HIGH_WATERMARK 12 -set CRIT_HIGH_WATERMARK 14 top
 synth -top top
 stat
+

@@ -70,3 +70,4 @@ See generated plots: `results/fifo_occupancy_vs_time.png` and `results/latency_v
 | 1024 | 932 | 11,880.76 | 15,956.75 | 3,148.70 | 0 |
 
 **Observation:** Larger `FIFO_DEPTH` absorbs longer ingress bursts before backpressuring the source, increasing effective burst-window throughput by **+58%** from depth 64 to 1024 at the cost of higher queueing latency and SRAM area.
+

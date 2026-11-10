@@ -27,3 +27,4 @@ package rate_uvm_pkg;
 endpackage
 
 `endif
+

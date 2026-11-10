@@ -32,3 +32,4 @@
 - **Architectural context:** The current subsystem services a single ingress/egress packet stream. Extending to multi-queue ingress (e.g., QoS traffic classes) introduces the classic scheduler tradeoff:
   - **Strict Priority** minimizes tail latency for control/expedited traffic but risks starvation of lower-priority queues under congestion.
   - **Weighted Round-Robin / Deficit Round-Robin (DRR)** guarantees bounded fairness and starvation freedom across variable-length packets (`packet_start`/`packet_end` boundaries), at the cost of per-queue deficit counters and slightly higher arbitration logic depth.
+

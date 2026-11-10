@@ -30,3 +30,4 @@
 | `reset_during_packet_test` | Mid-packet reset assertion & clean post-reset restart |
 | `error_injection_test` | Malformed SOP/EOP sequence -> `packet_error` assertion & `clr_errors` |
 | `random_stress_test` | Thousands of randomized beats across hundreds of packets |
+

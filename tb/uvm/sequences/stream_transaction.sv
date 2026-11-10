@@ -154,3 +154,4 @@ class rate_env_config extends uvm_object;
 endclass
 
 `endif
+

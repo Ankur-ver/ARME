@@ -163,3 +163,4 @@ module fifo_monitor #(
     end
 
 endmodule : fifo_monitor
+

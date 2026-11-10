@@ -254,4 +254,5 @@ adaptive-rate-matching-engine/
 - **Phase 11–12:** SVA (`tb/assertions/assertions.sv`) & functional coverage (`tb/uvm/coverage/`)
 - **Phase 13–14:** Python regression (`scripts/run_regression.py`) & coverage closure (`docs/coverage_closure.md`)
 - **Phase 15:** Real simulation performance experiments (A–E) & Python plots
-- **Phase 16:** Complete documentation (`README.md`, `design.md`, `cdc.md`, `reset_strategy.md`, `verification_plan.md`, `tradeoffs.md`, `interview_questions.md`, `performance_analysis.md`)
+
+

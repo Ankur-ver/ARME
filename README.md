@@ -156,3 +156,4 @@ yosys -s synthesis/synth_yosys.ys
 
 - **Limitations:** `FIFO_DEPTH` must be a power of 2 for standard Gray symmetry; single shared FIFO can experience head-of-line blocking under mixed traffic classes; full UVM `covergroup` merging requires a commercial UVM simulator (Questa/VCS/Xcelium).
 - **Future Work:** APB/AXI4-Lite CSR block for dynamic runtime watermark updates, multi-QoS virtual channels with Deficit Round-Robin arbitration, and PDK-specific ASIC static timing closure.
+

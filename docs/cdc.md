@@ -29,3 +29,4 @@ We **never** transfer a multi-bit binary occupancy counter across clock domains.
 - **Destination/read domain:** `rd_occupancy = wr_ptr_bin_sync - rd_ptr_bin`
   - Because `wr_ptr_bin_sync` lags the true write pointer, `rd_occupancy <= true_occupancy`.
   - **Safety property:** Read logic never assumes data is present before it has safely landed in memory.
+

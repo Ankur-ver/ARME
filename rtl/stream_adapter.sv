@@ -146,3 +146,4 @@ module stream_adapter #(
     end
 
 endmodule : stream_adapter
+

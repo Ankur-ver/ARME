@@ -206,3 +206,4 @@ class error_injection_test extends rate_base_test;
 endclass
 
 `endif
+
