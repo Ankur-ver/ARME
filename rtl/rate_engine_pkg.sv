@@ -5,6 +5,8 @@
 //               architectural parameters for the rate-matching subsystem.
 // =============================================================================
 
+`timescale 1ns/1ps
+
 package rate_engine_pkg;
 
     // -------------------------------------------------------------------------
@@ -51,3 +53,4 @@ package rate_engine_pkg;
     } rate_status_t;
 
 endpackage : rate_engine_pkg
+
