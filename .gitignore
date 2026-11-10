@@ -1,0 +1,45 @@
+# Build and simulation outputs
+sim/build/
+sim/waves/
+*.vcd
+*.fst
+*.ghw
+*.vvp
+*.log
+*.jou
+*.pb
+*.wdb
+obj_dir/
+work/
+transcript
+vsim.wlf
+covhtmlreport/
+ucdb/
+*.ucdb
+*.dat
+
+# Synthesis outputs
+synthesis/out/
+*.json
+*.rpt
+*.netlist.v
+
+# Regression and analysis artifacts (keep .gitkeep)
+results/*.csv
+results/*.png
+results/*.txt
+results/*.log
+results/runs/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+*.swp
+.vscode/
